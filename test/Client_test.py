@@ -1,15 +1,24 @@
 import asyncio
+import json
+
 import websockets
+
 
 async def hello():
     uri = "ws://localhost:5001"
     async with websockets.connect(uri) as websocket:
-        message = input("send some message : ")
+        while True:
+            k = input("send some message : ").split(',')
 
-        await websocket.send(message)
-        print(f"> {message}")
+            message = {"message": k[0], "param": [i for i in k[1:]]}
+            if message == 'discon':
+                break
+            await websocket.send(json.dumps(message))
+            print(f"> {message}")
 
-        response = await websocket.recv()
-        print(f"< {response}")
+            response = await websocket.recv()
+            print(f"< {response}")
 
-asyncio.get_event_loop().run_until_complete(hello())
+
+if __name__ == "__main__":
+    asyncio.get_event_loop().run_until_complete(hello())
