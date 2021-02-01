@@ -53,21 +53,46 @@ class Kiwoom(QMainWindow, SingletonInstance):
     """
     Methods
     """
-    def getAcoNo(self):
-        """
-        ocx에서 계좌 가져오는 메소드 호출
-        :return: str(account_num)
-        """
-        account_num = self.ocx.call("GetLoginInfo(QString)", ["ACCNO"])
-        return str(account_num.rstrip(';'))
 
-    def getRData(self):
-        return
+    # 4) GetLoginInfo
+    def getLoginInfo(self, tag):
+        """
+        원형 : BSTR GetLoginInfo(BSTR sTag)
+        설명 : 로그인한 사용자 정보를 반환한다.
+        입력값 : BSTR sTag : 사용자 정보 구분 TAG값 (비고)
+        반환값 : TAG값에 따른 데이터 반환
+        비고 :
+            BSTRsTag에 들어 갈 수 있는 값은 아래와 같음
+            "ACCOUNT_CNT" – 전체 계좌 개수를 반환한다.
+            "ACCNO" – 전체 계좌를 반환한다. 계좌별 구분은 ';'이다.
+            "USER_ID" - 사용자 ID를 반환한다.
+            "USER_NAME" – 사용자명을 반환한다.
+            "KEY_BSECGB" – 키보드보안 해지여부. 0:정상, 1:해지
+            "FIREW_SECGB" – 방화벽 설정 여부. 0:미설정, 1:설정, 2:해지
+            Ex) openApi.GetLoginInfo("ACCOUNT_CNT");
+        """
+        return self.ocx.call("GetLoginInfo(QString)", tag)
 
     def commRqData(self, rq_name, tr_code, prev_next, scr_no):
-        return self.ocx.call("CommRqData(QString, QString, Int, QString)", rq_name, tr_code, prev_next, scr_no)
+        # return self.ocx.call("CommRqData(QString, QString, int, QString)", "opt10001_req", "opt10001", 0, "0101")
+        self.logSignal(f'{rq_name}, {tr_code}, {prev_next}, {scr_no}')
+        result = None
+        """
+        # RqName 데이터 타입을 배열로 받아 아래 commRqData로 받아온 값을 
+        self.ocx.call("CommRqData(QString, QString, Int, QString)", str(rq_name), str(tr_code), int(prev_next), str(scr_no))
+        # getCommData 로 요청 값들 배열에 저장 후 리턴
+        result = self.getCommData(tr_code, rq_name, prev_next, scr_no)
+        """
+
+        return result
+
+    def getCommData(self, tr_code, rq_name, index, item):
+        data = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)",
+                                    tr_code, rq_name, index, item)
+        return data.strip()
+
     # ---methods end.
-    
+
     """
     Event Handlers
     """
@@ -80,12 +105,25 @@ class Kiwoom(QMainWindow, SingletonInstance):
         if err_code == 0:
             self.logSignal("로그인 성공")
 
-
     def on_receive_msg(self, ):
         pass
 
-    def on_receive_tr_data(self):
-        pass
+    def on_receive_tr_data(self, screen_no, rqname, trcode, recordname, prev_next, data_len, err_code, msg1, msg2):
+        
+        """
+        구현중,,
+        """
+        print("리시브로 들어옴")
+        if rqname == "opt10001_req":
+            name = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString", trcode, recordname, 0, "종목명")
+            volume = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString", trcode, recordname, 0, "거래량")
+            numStocks = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString", trcode, recordname, 0,
+                                                "상장주식")
+            prices = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString", trcode, recordname, 0, "시가")
+            self.text_edit.append("종목명:" + name.strip())
+            self.text_edit.append("거래량:" + volume.strip())
+            self.text_edit.append("상장주식:" + numStocks.strip())
+            self.text_edit.append("시가:" + prices.strip())
 
     def on_receive_real_data(self):
         pass

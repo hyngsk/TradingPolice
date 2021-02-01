@@ -16,14 +16,9 @@ class WSServer(QtCore.QObject):
         self.server.closed.connect(QtCore.QCoreApplication.quit)
         if self.server.listen(QtNetwork.QHostAddress.LocalHost, 5001):
             print(
-                "Connected: {} : {} : {}".format(
-                    self.server.serverName(),
-                    self.server.serverAddress().toString(),
-                    self.server.serverPort(),
-                )
-            )
+                f"Connected: {self.server.serverName()} : {self.server.serverAddress().toString()} : {self.server.serverPort()}")
         else:
-            print("error: {}".format(self.server.errorString()))
+            print(f"error: {self.server.errorString()}")
         self.server.newConnection.connect(self.onNewConnection)
         print(self.server.isListening())
 
@@ -35,7 +30,7 @@ class WSServer(QtCore.QObject):
         client.binaryMessageReceived.connect(self.processBinaryMessage)
         client.disconnected.connect(self.socketDisconnected)
         self.clients.append(client)
-        self.SignalLog.emit("[INFO] {} -- Connected: Client-[{}]".format(datetime.datetime.now(), client.identifier))
+        self.SignalLog.emit(f"[INFO] {datetime.datetime.now()} -- Connected: Client-[{client.identifier}]")
 
     @QtCore.pyqtSlot(str)
     def processTextMessage(self, message):
@@ -46,19 +41,17 @@ class WSServer(QtCore.QObject):
 
             # log 찍는 방법 1. statusChanged 시그널 변수를 이용해 GUI로그창으로 전송
             self.SignalLog.emit(
-                "[INFO] {} -- Client- [{}] Sent: {} {}".format(datetime.datetime.now(), client.identifier,
-                                                               type(message), str(message)))
+                f"[INFO] {datetime.datetime.now()} -- Client- [{client.identifier}] Sent: {type(message)} {str(message)}")
             # get controller instance
             ctr = Controller(client.identifier, str(message))
             try:
-                result = ctr.getDataFromKW()
+                result = ctr.get_data_from_kw()
             except ctr:
-                self.SignalLog.emit("[ERROR] {} -- Client- [{}]: {}".format(datetime.datetime.now(), client.identifier,
-                                                                            "Incorrect request"))
+                self.SignalLog.emit(
+                    f"[ERROR] {datetime.datetime.now()} -- Client- [{client.identifier}]: Incorrect request")
             # log
             self.SignalLog.emit(
-                "[INFO] {} -- sent to Client- [{}]: {}".format(datetime.datetime.now(), client.identifier,
-                                                               result))
+                f"[INFO] {datetime.datetime.now()} -- sent to Client- [{client.identifier}]: {result}")
             # 클라이언트에게 메세지 전송
             return client.sendTextMessage(result)
 
@@ -72,13 +65,12 @@ class WSServer(QtCore.QObject):
         client = self.sender()
         if isinstance(client, QtWebSockets.QWebSocket):
             client.sendBinaryMessage(message)
-            print("[INFO] {} -- Client- [{}]: {}".format(datetime.datetime.now(), client.identifier, message))
+            print(f"[INFO] {datetime.datetime.now()} -- Client- [{client.identifier}]: {message}")
 
     @QtCore.pyqtSlot()
     def socketDisconnected(self):
         client = self.sender()
         if isinstance(client, QtWebSockets.QWebSocket):
             self.clients.remove(client)
-            self.SignalLog.emit(
-                "[INFO] {} -- Disconnected: Client-[{}]".format(datetime.datetime.now(), client.identifier))
+            self.SignalLog.emit(f"[INFO] {datetime.datetime.now()} -- Disconnected: Client-[{client.identifier}]")
             client.deleteLater()

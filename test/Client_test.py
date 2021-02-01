@@ -8,10 +8,13 @@ async def hello():
     uri = "ws://localhost:5001"
     async with websockets.connect(uri) as websocket:
         while True:
-            k = input("send some message : ").split(',')
-
-            message = {"message": k[0], "param": [i for i in k[1:]]}
-            if message == 'discon':
+            func = input("send func : ").split(',')
+            param = []
+            for i in range(len(func)):
+                tmp = input("send param : ").split(',')
+                param.append(tmp)
+            message = {"func": [i for i in func], "param": [i for i in param]}
+            if func is None or param is None:
                 break
             await websocket.send(json.dumps(message))
             print(f"> {message}")
