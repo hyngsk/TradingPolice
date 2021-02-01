@@ -7,9 +7,9 @@ from Server import WSServer
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    ex = Kiwoom.instance()
+    KWAPI = Kiwoom.instance()
 
     server = WSServer("My Socket", QtWebSockets.QWebSocketServer.NonSecureMode)
-    server.statusChanged.connect(ex.on_status_changed)
+    server.SignalLog.connect(KWAPI.logSignal)
 
     sys.exit(app.exec_())
