@@ -40,10 +40,9 @@ class WSServer(QtCore.QObject):
             # client.sendTextMessage(message) # 클라이언트로부터 받은 메세지를 다시 클라이언트에게 Echo 전송
 
             # log 찍는 방법 1. statusChanged 시그널 변수를 이용해 GUI로그창으로 전송
-            self.SignalLog.emit(
-                f"[INFO] {datetime.datetime.now()} -- Client- [{client.identifier}] Sent: {type(message)} {str(message)}")
+            self.SignalLog.emit(f"[INFO] {datetime.datetime.now()} -- Client- [{client.identifier}] Sent: {type(message)} {str(message)}")
             # get controller instance
-            ctr = Controller(client.identifier, str(message))
+            ctr = Controller(client.identifier, str(sage))
             try:
                 result = ctr.get_data_from_kw()
             except ctr:

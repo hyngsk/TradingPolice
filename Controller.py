@@ -10,8 +10,7 @@ class Controller:
         super().__init__()
         self.k = json.loads(message)
         self.request = {"client": client, "func": self.k["func"], "param": self.k["param"]}
-        print(
-            f'get message type[{type(self.request)}] : {json.dumps(self.request, indent=4)} from client - [{self.request["client"]}]')
+        print(f'get message type[{type(self.request)}] : {json.dumps(self.request, indent=4)} from client - [{self.request["client"]}]')
         self.conn = Kiwoom.instance()
 
     def getAcoNo(self):
